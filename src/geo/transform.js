@@ -1284,7 +1284,12 @@ class Transform {
         // Calculate z distance of the farthest fragment that should be rendered.
         const furthestDistance = Math.cos(Math.PI / 2 - this._pitch) * topHalfSurfaceDistance + cameraToSeaLevelDistance;
         // Add a bit extra to avoid precision problems when a fragment's distance is exactly `furthestDistance`
-        const farZ = furthestDistance * 1.01;
+
+        // Move the horizon closer to the center. 0 would not shift the horizon. 1 would put the horizon at the center.
+        const horizonShift = 0.2;
+        const horizonDistance = cameraToSeaLevelDistance * (1 / horizonShift);
+
+        const farZ = Math.min(furthestDistance * 1.01, horizonDistance);
 
         // The larger the value of nearZ is
         // - the more depth precision is available for features (good)
