@@ -137,7 +137,7 @@ export class MapMouseEvent extends Event {
      * @private
      */
     constructor(type: string, map: Map, originalEvent: MouseEvent, data: Object = {}) {
-        const point = DOM.mousePos(map.getCanvasContainer(), originalEvent);
+        const point = DOM.mousePos(map.getCanvas(), originalEvent);
         const lngLat = map.unproject(point);
         super(type, extend({point, lngLat, originalEvent}, data));
         this._defaultPrevented = false;

@@ -33,7 +33,6 @@ const maxScalePerFrame = 2;
  */
 class ScrollZoomHandler implements Handler {
     _map: Map;
-    _el: HTMLElement;
     _enabled: boolean;
     _active: boolean;
     _zooming: boolean;
@@ -69,7 +68,6 @@ class ScrollZoomHandler implements Handler {
      */
     constructor(map: Map, handler: HandlerManager) {
         this._map = map;
-        this._el = map.getCanvasContainer();
         this._handler = handler;
 
         this._delta = 0;
@@ -256,7 +254,7 @@ class ScrollZoomHandler implements Handler {
             delete this._finishTimeout;
         }
 
-        const pos = DOM.mousePos(this._el, e);
+        const pos = DOM.mousePos(this._map.getCanvas(), e);
         this._aroundPoint = this._aroundCenter ? this._map.transform.centerPoint : pos;
         this._aroundCoord = this._map.transform.pointCoordinate3D(this._aroundPoint);
         this._targetZoom = undefined;
@@ -411,7 +409,7 @@ class ScrollZoomHandler implements Handler {
             }
 
             // dynamically set the font size of the scroll zoom blocker alert message
-            this._alertContainer.style.fontSize = `${Math.max(10, Math.min(24, Math.floor(this._el.clientWidth * 0.05)))}px`;
+            this._alertContainer.style.fontSize = `${Math.max(10, Math.min(24, Math.floor(this._map.getCanvas().clientWidth * 0.05)))}px`;
         }
     }
 

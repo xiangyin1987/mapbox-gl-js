@@ -3,6 +3,12 @@
 import Point from '@mapbox/point-geometry';
 import assert from 'assert';
 
+type ScaleReturnValue = {
+    x: number;
+    y: number;
+    boundingClientRect: DOMRect;
+};
+
 // refine the return type based on tagName, e.g. 'button' -> HTMLButtonElement
 // $FlowFixMe[method-unbinding]
 export function create<T: string>(tagName: T, className: ?string, container?: HTMLElement): $Call<typeof document.createElement, T> {
@@ -55,17 +61,33 @@ export function suppressClick() {
     }, 0);
 }
 
+function getScale(element: HTMLElement): ScaleReturnValue {
+    const rect = element.getBoundingClientRect();
+    return {
+        x: (rect.width / element.offsetWidth) || 1,
+        y: (rect.height / element.offsetHeight) || 1,
+        boundingClientRect: rect,
+    };
+}
+
+function getPoint(el: HTMLElement, scale: ScaleReturnValue, e: MouseEvent | Touch): Point {
+    const rect = scale.boundingClientRect;
+    return new Point(
+        ((e.clientX - rect.left) / scale.x) - el.clientLeft,
+        ((e.clientY - rect.top) / scale.y) - el.clientTop
+    );
+}
+
 export function mousePos(el: HTMLElement, e: MouseEvent | WheelEvent): Point {
-    const rect = el.getBoundingClientRect();
-    return getScaledPoint(el, rect, e);
+    const scale = getScale(el);
+    return getPoint(el, scale, e);
 }
 
 export function touchPos(el: HTMLElement, touches: TouchList): Array<Point> {
-    const rect = el.getBoundingClientRect(),
-        points = [];
-
+    const points = [];
+    const scale = getScale(el);
     for (let i = 0; i < touches.length; i++) {
-        points.push(getScaledPoint(el, rect, touches[i]));
+        points.push(getPoint(el, scale, touches[i]));
     }
     return points;
 }
@@ -80,16 +102,4 @@ export function mouseButton(e: MouseEvent): number {
         return 0;
     }
     return e.button;
-}
-
-function getScaledPoint(el: HTMLElement, rect: ClientRect, e: MouseEvent | WheelEvent | Touch) {
-    // Until we get support for pointer events (https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent)
-    // we use this dirty trick which would not work for the case of rotated transforms, but works well for
-    // the case of simple scaling.
-    // Note: `el.offsetWidth === rect.width` eliminates the `0/0` case.
-    const scaling = el.offsetWidth === rect.width ? 1 : el.offsetWidth / rect.width;
-    return new Point(
-        (e.clientX - rect.left) * scaling,
-        (e.clientY - rect.top) * scaling
-    );
 }
